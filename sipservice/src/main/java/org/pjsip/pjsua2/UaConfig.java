@@ -68,6 +68,15 @@ public class UaConfig extends PersistentObject {
     return (cPtr == 0) ? null : new StringVector(cPtr, false);
   }
 
+  public void setOutboundProxies(StringVector value) {
+    pjsua2JNI.UaConfig_outboundProxies_set(swigCPtr, this, StringVector.getCPtr(value), value);
+  }
+
+  public StringVector getOutboundProxies() {
+    long cPtr = pjsua2JNI.UaConfig_outboundProxies_get(swigCPtr, this);
+    return (cPtr == 0) ? null : new StringVector(cPtr, false);
+  }
+
   public void setUserAgent(String value) {
     pjsua2JNI.UaConfig_userAgent_set(swigCPtr, this, value);
   }
@@ -83,6 +92,14 @@ public class UaConfig extends PersistentObject {
   public StringVector getStunServer() {
     long cPtr = pjsua2JNI.UaConfig_stunServer_get(swigCPtr, this);
     return (cPtr == 0) ? null : new StringVector(cPtr, false);
+  }
+
+  public void setStunTryIpv6(boolean value) {
+    pjsua2JNI.UaConfig_stunTryIpv6_set(swigCPtr, this, value);
+  }
+
+  public boolean getStunTryIpv6() {
+    return pjsua2JNI.UaConfig_stunTryIpv6_get(swigCPtr, this);
   }
 
   public void setStunIgnoreFailure(boolean value) {
