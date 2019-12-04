@@ -225,10 +225,6 @@ public class SipAccountData implements Parcelable {
         // account configs
         accountConfig.setIdUri(getIdUri());
 
-        // account registration stuff configs
-        if (callId != null && !callId.isEmpty()) {
-            accountConfig.getRegConfig().setCallID(callId);
-        }
         accountConfig.getRegConfig().setRegistrarUri(getRegistrarUri());
         accountConfig.getRegConfig().setTimeoutSec(regExpirationTimeout);
 
