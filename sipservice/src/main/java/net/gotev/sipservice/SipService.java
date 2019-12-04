@@ -608,16 +608,6 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
     private void loadNativeLibraries() {
         try {
-            System.loadLibrary("openh264");
-            Logger.debug(TAG, "OpenH264 loaded");
-        } catch (UnsatisfiedLinkError error) {
-            Logger.error(TAG, "Error while loading OpenH264 native library", error);
-            throw new RuntimeException(error);
-        }
-
-        // libYUV removed -> integrated from pjsip 2.6 and later
-
-        try {
             System.loadLibrary("pjsua2");
             Logger.debug(TAG, "PJSIP pjsua2 loaded");
         } catch (UnsatisfiedLinkError error) {
