@@ -181,6 +181,10 @@ public class SipService extends BackgroundService implements SipServiceConstants
                     case ACTION_MAKE_DIRECT_CALL:
                         handleMakeDirectCall(intent);
                         break;
+                    case ACTION_RESET_ACCOUNTS:
+                        handleResetAccounts();
+                        removeAllActiveAccounts();
+                        break;
                     default: break;
                 }
 

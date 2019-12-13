@@ -553,4 +553,14 @@ public class SipServiceCommand implements SipServiceConstants {
         intent.putExtra(PARAM_CALL_ID, callID);
         context.startService(intent);
     }
+
+    /**
+     * Removes all accounts
+     */
+    public static void resetAccounts(Context context) {
+        Intent intent = new Intent(context, SipService.class);
+        intent.setAction(ACTION_RESET_ACCOUNTS);
+        context.startService(intent);
+    }
+
 }

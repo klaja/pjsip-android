@@ -33,6 +33,7 @@ public interface SipServiceConstants {
     String ACTION_STOP_VIDEO_PREVIEW = "stopVideoPreview";
     String ACTION_SWITCH_VIDEO_CAPTURE_DEVICE = "switchVideoCaptureDevice";
     String ACTION_MAKE_DIRECT_CALL = "makeDirectCall";
+    String ACTION_RESET_ACCOUNTS = "resetAccounts";
 
     /*
      * Generic Parameters
