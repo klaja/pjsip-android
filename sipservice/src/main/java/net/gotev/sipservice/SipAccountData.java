@@ -233,6 +233,10 @@ public class SipAccountData implements Parcelable {
         accountConfig.getSipConfig().getProxies().add(getProxyUri());
         accountConfig.getSipConfig().setContactUriParams(contactUriParams);
 
+        // disable Contact rewriting
+        accountConfig.getNatConfig().setContactRewriteUse(0);
+        accountConfig.getNatConfig().setViaRewriteUse(0);
+
         // account media  stuff configs
         accountConfig.getMediaConfig().getTransportConfig().setQosType(pj_qos_type.PJ_QOS_TYPE_VOICE);
         setVideoConfig(accountConfig);
