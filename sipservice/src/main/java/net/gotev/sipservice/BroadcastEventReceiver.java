@@ -33,7 +33,7 @@ public class BroadcastEventReceiver extends BroadcastReceiver implements SipServ
         if (BroadcastEventEmitter.getAction(BroadcastEventEmitter.BroadcastAction.REGISTRATION).equals(action)) {
             int stateCode = intent.getIntExtra(PARAM_REGISTRATION_CODE, -1);
             onRegistration(intent.getStringExtra(PARAM_ACCOUNT_ID),
-                           pjsip_status_code.swigToEnum(stateCode));
+                           stateCode);
 
         } else if (BroadcastEventEmitter.getAction(BroadcastEventEmitter.BroadcastAction.INCOMING_CALL).equals(action)) {
             onIncomingCall(intent.getStringExtra(PARAM_ACCOUNT_ID),
@@ -47,8 +47,8 @@ public class BroadcastEventReceiver extends BroadcastReceiver implements SipServ
             int callStatus = intent.getIntExtra(PARAM_CALL_STATUS, -1);
             onCallState(intent.getStringExtra(PARAM_ACCOUNT_ID),
                         intent.getIntExtra(PARAM_CALL_ID, -1),
-                        pjsip_inv_state.swigToEnum(callState),
-                        (callStatus > 0) ? pjsip_status_code.swigToEnum(callStatus) : null,
+                        callState,
+                        (callStatus > 0) ? callStatus : null,
                         intent.getLongExtra(PARAM_CONNECT_TIMESTAMP, -1),
                         intent.getBooleanExtra(PARAM_LOCAL_HOLD, false),
                         intent.getBooleanExtra(PARAM_LOCAL_MUTE, false),
@@ -82,7 +82,7 @@ public class BroadcastEventReceiver extends BroadcastReceiver implements SipServ
             int callStatus = intent.getIntExtra(PARAM_CALL_STATUS, -1);
             onCallStats(intent.getIntExtra(PARAM_CALL_STATS_DURATION, 0),
                 intent.getStringExtra(PARAM_CALL_STATS_AUDIO_CODEC),
-                (callStatus > 0) ? pjsip_status_code.swigToEnum(callStatus) : null,
+                (callStatus > 0) ? callStatus : null,
                 (RtpStreamStats) intent.getParcelableExtra(PARAM_CALL_STATS_RX_STREAM),
                 (RtpStreamStats) intent.getParcelableExtra(PARAM_CALL_STATS_TX_STREAM));
         }
@@ -134,7 +134,7 @@ public class BroadcastEventReceiver extends BroadcastReceiver implements SipServ
         context.unregisterReceiver(this);
     }
 
-    public void onRegistration(String accountID, pjsip_status_code registrationStateCode) {
+    public void onRegistration(String accountID, int registrationStateCode) {
         Logger.debug(LOG_TAG, "onRegistration - accountID: " + accountID +
                 ", registrationStateCode: " + registrationStateCode);
     }
@@ -146,7 +146,7 @@ public class BroadcastEventReceiver extends BroadcastReceiver implements SipServ
                 ", remoteUri: " + remoteUri);
     }
 
-    public void onCallState(String accountID, int callID, pjsip_inv_state callStateCode, pjsip_status_code callStatusCode,
+    public void onCallState(String accountID, int callID, int callStateCode, int callStatusCode,
                             long connectTimestamp, boolean isLocalHold, boolean isLocalMute, boolean isLocalVideoMute) {
         Logger.debug(LOG_TAG, "onCallState - accountID: " + accountID +
                 ", callID: " + callID +
@@ -187,7 +187,7 @@ public class BroadcastEventReceiver extends BroadcastReceiver implements SipServ
         Logger.debug(LOG_TAG, "Video resolution " + width+"x"+height);
     }
 
-    protected void onCallStats(int duration, String audioCodec, pjsip_status_code callStatusCode, RtpStreamStats rx, RtpStreamStats tx) {
+    protected void onCallStats(int duration, String audioCodec, int callStatusCode, RtpStreamStats rx, RtpStreamStats tx) {
         Logger.debug(LOG_TAG, "Call Stats sent "+duration+" "+audioCodec);
     }
 }

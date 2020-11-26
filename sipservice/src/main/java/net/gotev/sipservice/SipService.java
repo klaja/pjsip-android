@@ -10,7 +10,7 @@ import org.pjsip.pjsua2.AudDevManager;
 import org.pjsip.pjsua2.CallVidSetStreamParam;
 import org.pjsip.pjsua2.CodecFmtpVector;
 import org.pjsip.pjsua2.CodecInfo;
-import org.pjsip.pjsua2.CodecInfoVector;
+import org.pjsip.pjsua2.CodecInfoVector2;
 import org.pjsip.pjsua2.Endpoint;
 import org.pjsip.pjsua2.EpConfig;
 import org.pjsip.pjsua2.MediaFormatVideo;
@@ -211,7 +211,7 @@ public class SipService extends BackgroundService implements SipServiceConstants
     private void notifyCallDisconnected(String accountID, int callID) {
 
         mBroadcastEmitter.callState(accountID, callID,
-                pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED.swigValue(),
+                pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED,
                 callStatus, 0,
                 false, false, false);
     }
@@ -229,12 +229,12 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
         int callStatusCode = callStatus;
         try {
-            callStatusCode = sipCall.getInfo().getLastStatusCode().swigValue();
+            callStatusCode = sipCall.getInfo().getLastStatusCode();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        mBroadcastEmitter.callState(accountID, callID, sipCall.getCurrentState().swigValue(), callStatusCode,
+        mBroadcastEmitter.callState(accountID, callID, sipCall.getCurrentState(), callStatusCode,
                                     sipCall.getConnectTimestamp(), sipCall.isLocalHold(),
                                     sipCall.isLocalMute(), sipCall.isLocalVideoMute());
     }
@@ -718,7 +718,7 @@ public class SipService extends BackgroundService implements SipServiceConstants
              */
             Runtime.getRuntime().gc();
 
-            mEndpoint.libDestroy(pjsua_destroy_flag.PJSUA_DESTROY_NO_NETWORK.swigValue());
+            mEndpoint.libDestroy(pjsua_destroy_flag.PJSUA_DESTROY_NO_NETWORK);
             mEndpoint.delete();
             mEndpoint = null;
 
@@ -744,7 +744,7 @@ public class SipService extends BackgroundService implements SipServiceConstants
         }
 
         try {
-            CodecInfoVector codecs = mEndpoint.codecEnum();
+            CodecInfoVector2 codecs = mEndpoint.codecEnum2();
             if (codecs == null || codecs.size() == 0) return null;
 
             ArrayList<CodecPriority> codecPrioritiesList = new ArrayList<>((int)codecs.size());
@@ -820,7 +820,7 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
         SipAccount account = mActiveSipAccounts.get(accountID);
         try {
-            mBroadcastEmitter.registrationState(accountID, account.getInfo().getRegStatus().swigValue());
+            mBroadcastEmitter.registrationState(accountID, account.getInfo().getRegStatus());
         } catch (Exception exc) {
             Logger.error(TAG, "Error while getting registration status for " + accountID, exc);
         }
@@ -964,7 +964,7 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
     void setSelfVideoOrientation(SipCall sipCall, int orientation) {
         try {
-            pjmedia_orient pjmediaOrientation;
+            int pjmediaOrientation;
 
             switch (orientation) {
                 case Surface.ROTATION_0:   // Portrait
