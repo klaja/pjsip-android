@@ -36,6 +36,7 @@ Native PJSIP library for Android is compiled using [PJSIP Android Builder](https
   - video preview
 - Use of a fixed SIP `Call-ID Header`. Refer to [this](https://github.com/VoiSmart/pjsip-android-builder/tree/master/patches/fixed_callid) for more details
 - Get Call Statistics on call disconnected
+- Sip Credential encryption on device. Refer to VoiSmart [Crypto](https://github.com/VoiSmart/crypto) library for more details
 
 ## What is missing (contributions are welcome):
 - Multiple calls support
@@ -47,6 +48,43 @@ Native PJSIP library for Android is compiled using [PJSIP Android Builder](https
 - Respond to a call and play a sound file
 - Support for In-Call RTCP signaling to get call statistics
 - Other things which I'm not aware at the moment...
+
+## Used Libraries versions
+- PJSIP: 2.6
+- OpenSSL: 1.0.2g
+- OpenH264: 1.7.0
+- Opus: 1.2.1
+
+## Logging
+This library ships with a default logger which logs with the default Android `Log` class and a default `DEBUG` loglevel.
+You can customize such behaviour by either:
+
+1. Setting a specific loglevel (see Logger#setLogLevel)
+2. Setting your own LoggerDelegate. E.g.:
+    ```java
+    class SipServiceLogger extends Logger.LoggerDelegate {
+        @Override
+        public void error(String tag, String message) {
+            Timber.tag(tag).e(message);
+        }
+
+        @Override
+        public void error(String tag, String message, Throwable exception) {
+            Timber.tag(tag).e(exception, message);
+        }
+
+        @Override
+        public void debug(String tag, String message) {
+            Timber.tag(tag).d(message);
+        }
+
+        @Override
+        public void info(String tag, String message) {
+            Timber.tag(tag).i(message);
+        }
+    }
+    ```
+    [Timber](https://github.com/JakeWharton/timber) can be configured as you wish, to log everything or just in debug mode, or log to anywhere.
 
 # Recompile native libraries
 Refer to [PJSIP Android Builder](https://github.com/VoiSmart/pjsip-android-builder)

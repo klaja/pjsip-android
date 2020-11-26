@@ -1,15 +1,10 @@
 package net.gotev.sipservice;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.Surface;
-
-import com.crashlytics.android.Crashlytics;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import org.pjsip.pjsua2.AudDevManager;
 import org.pjsip.pjsua2.CallVidSetStreamParam;
@@ -29,7 +24,6 @@ import org.pjsip.pjsua2.pjsip_transport_type_e;
 import org.pjsip.pjsua2.pjsua_call_vid_strm_op;
 import org.pjsip.pjsua2.pjsua_destroy_flag;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -47,16 +41,12 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
     private static final String TAG = SipService.class.getSimpleName();
 
-    private static final String PREFS_NAME = TAG + "prefs";
-    private static final String PREFS_KEY_ACCOUNTS = "accounts";
-    private static final String PREFS_KEY_CODEC_PRIORITIES = "codec_priorities";
-    private static final String PREFS_KEY_DND = "dnd_pref";
-
     private List<SipAccountData> mConfiguredAccounts = new ArrayList<>();
     private SipAccountData mConfiguredGuestAccount;
     private static ConcurrentHashMap<String, SipAccount> mActiveSipAccounts = new ConcurrentHashMap<>();
     private BroadcastEventEmitter mBroadcastEmitter;
     private Endpoint mEndpoint;
+    private SharedPreferencesHelper mSharedPreferencesHelper;
     private volatile boolean mStarted;
     private int callStatus;
 
@@ -75,7 +65,8 @@ public class SipService extends BackgroundService implements SipServiceConstants
                 Logger.debug(TAG, "Creating SipService with priority: " + Thread.currentThread().getPriority());
 
                 loadNativeLibraries();
-
+                mSharedPreferencesHelper = SharedPreferencesHelper.getInstance(SipService.this)
+                        .init(SipService.this);
                 mBroadcastEmitter = new BroadcastEventEmitter(SipService.this);
                 loadConfiguredAccounts();
                 addAllConfiguredAccounts();
@@ -900,38 +891,19 @@ public class SipService extends BackgroundService implements SipServiceConstants
     }
 
     private void persistConfiguredAccounts() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        prefs.edit().putString(PREFS_KEY_ACCOUNTS, new Gson().toJson(mConfiguredAccounts)).apply();
+        mSharedPreferencesHelper.persistConfiguredAccounts(mConfiguredAccounts);
     }
 
     private void persistConfiguredCodecPriorities(ArrayList<CodecPriority> codecPriorities) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        prefs.edit().putString(PREFS_KEY_CODEC_PRIORITIES, new Gson().toJson(codecPriorities)).apply();
-    }
-
-    private ArrayList<CodecPriority> getConfiguredCodecPriorities() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-
-        String codecPriorities = prefs.getString(PREFS_KEY_CODEC_PRIORITIES, "");
-        if (codecPriorities.isEmpty()) {
-            return null;
-        }
-
-        Type listType = new TypeToken<ArrayList<CodecPriority>>(){}.getType();
-        return new Gson().fromJson(codecPriorities, listType);
+        mSharedPreferencesHelper.persistConfiguredCodecPriorities(codecPriorities);
     }
 
     private void loadConfiguredAccounts() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        mConfiguredAccounts = mSharedPreferencesHelper.retrieveConfiguredAccounts();
+    }
 
-        String accounts = prefs.getString(PREFS_KEY_ACCOUNTS, "");
-
-        if (accounts.isEmpty()) {
-            mConfiguredAccounts = new ArrayList<>();
-        } else {
-            Type listType = new TypeToken<ArrayList<SipAccountData>>(){}.getType();
-            mConfiguredAccounts = new Gson().fromJson(accounts, listType);
-        }
+    private ArrayList<CodecPriority> getConfiguredCodecPriorities() {
+        return mSharedPreferencesHelper.retrieveConfiguredCodecPriorities();
     }
 
     protected synchronized AudDevManager getAudDevManager() {
@@ -952,13 +924,11 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
     private void handleSetDND(Intent intent) {
         boolean dnd = intent.getBooleanExtra(PARAM_DND, false);
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        prefs.edit().putBoolean(PREFS_KEY_DND, dnd).apply();
+        mSharedPreferencesHelper.setDND(dnd);
     }
 
     public boolean isDND() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        return prefs.getBoolean(PREFS_KEY_DND, false);
+        return mSharedPreferencesHelper.isDND();
     }
 
     private void handleSetIncomingVideoFeed(Intent intent) {
@@ -1088,7 +1058,6 @@ public class SipService extends BackgroundService implements SipServiceConstants
             sipCall.vidSetStream(pjsua_call_vid_strm_op.PJSUA_CALL_VID_STRM_CHANGE_CAP_DEV, callVidSetStreamParam);
         } catch (Exception ex) {
             Logger.error(TAG, "Error while switching capture device", ex);
-            Crashlytics.logException(ex);
         }
     }
 
@@ -1137,7 +1106,6 @@ public class SipService extends BackgroundService implements SipServiceConstants
         } catch (Exception ex) {
             Logger.error(TAG, "Error while making a direct call as Guest", ex);
             mBroadcastEmitter.outgoingCall(accountID, -1, uri.getUserInfo(), false, false);
-            Crashlytics.logException(ex);
         }
     }
 
