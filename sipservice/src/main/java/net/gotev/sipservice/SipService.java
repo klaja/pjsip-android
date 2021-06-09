@@ -13,6 +13,7 @@ import org.pjsip.pjsua2.CodecInfo;
 import org.pjsip.pjsua2.CodecInfoVector2;
 import org.pjsip.pjsua2.Endpoint;
 import org.pjsip.pjsua2.EpConfig;
+import org.pjsip.pjsua2.IpChangeParam;
 import org.pjsip.pjsua2.MediaFormatVideo;
 import org.pjsip.pjsua2.TransportConfig;
 import org.pjsip.pjsua2.VidCodecParam;
@@ -43,7 +44,7 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
     private List<SipAccountData> mConfiguredAccounts = new ArrayList<>();
     private SipAccountData mConfiguredGuestAccount;
-    private static ConcurrentHashMap<String, SipAccount> mActiveSipAccounts = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, SipAccount> mActiveSipAccounts = new ConcurrentHashMap<>();
     private BroadcastEventEmitter mBroadcastEmitter;
     private Endpoint mEndpoint;
     private SharedPreferencesHelper mSharedPreferencesHelper;
@@ -175,6 +176,9 @@ public class SipService extends BackgroundService implements SipServiceConstants
                     case ACTION_RESET_ACCOUNTS:
                         handleResetAccounts();
                         removeAllActiveAccounts();
+                        break;
+                    case ACTION_RECONNECT_CALL:
+                        handleReconnectCall();
                         break;
                     default: break;
                 }
@@ -603,6 +607,22 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
     private void loadNativeLibraries() {
         try {
+            System.loadLibrary("c++_shared");
+            Logger.debug(TAG, "libc++_shared loaded");
+        } catch (UnsatisfiedLinkError error) {
+            Logger.error(TAG, "Error while loading libc++_shared native library", error);
+            throw new RuntimeException(error);
+        }
+
+        try {
+            System.loadLibrary("openh264");
+            Logger.debug(TAG, "OpenH264 loaded");
+        } catch (UnsatisfiedLinkError error) {
+            Logger.error(TAG, "Error while loading OpenH264 native library", error);
+            throw new RuntimeException(error);
+        }
+
+        try {
             System.loadLibrary("pjsua2");
             Logger.debug(TAG, "PJSIP pjsua2 loaded");
         } catch (UnsatisfiedLinkError error) {
@@ -620,7 +640,7 @@ public class SipService extends BackgroundService implements SipServiceConstants
 
         try {
             Logger.debug(TAG, "Starting PJSIP");
-            mEndpoint = new Endpoint();
+            mEndpoint = new SipEndpoint(this);
             mEndpoint.libCreate();
 
             EpConfig epConfig = new EpConfig();
@@ -651,17 +671,17 @@ public class SipService extends BackgroundService implements SipServiceConstants
                 }
                 Logger.debug(TAG, "Saved codec priorities set!");
             } else {
-//                mEndpoint.codecSetPriority("OPUS", (short) (CodecPriority.PRIORITY_MAX - 1));
-                mEndpoint.codecSetPriority("PCMA/8000", (short) (CodecPriority.PRIORITY_MAX - 1));
-                mEndpoint.codecSetPriority("PCMU/8000", (short) (CodecPriority.PRIORITY_DISABLED));
-//                mEndpoint.codecSetPriority("G729/8000", (short) CodecPriority.PRIORITY_DISABLED);
+                mEndpoint.codecSetPriority("OPUS", (short) (CodecPriority.PRIORITY_MAX - 1));
+                mEndpoint.codecSetPriority("PCMA/8000", (short) (CodecPriority.PRIORITY_MAX - 2));
+                mEndpoint.codecSetPriority("PCMU/8000", (short) (CodecPriority.PRIORITY_MAX -3));
+                mEndpoint.codecSetPriority("G729/8000", (short) CodecPriority.PRIORITY_DISABLED);
                 mEndpoint.codecSetPriority("speex/8000", (short) CodecPriority.PRIORITY_DISABLED);
                 mEndpoint.codecSetPriority("speex/16000", (short) CodecPriority.PRIORITY_DISABLED);
                 mEndpoint.codecSetPriority("speex/32000", (short) CodecPriority.PRIORITY_DISABLED);
                 mEndpoint.codecSetPriority("GSM/8000", (short) CodecPriority.PRIORITY_DISABLED);
                 mEndpoint.codecSetPriority("G722/16000", (short) CodecPriority.PRIORITY_DISABLED);
-//                mEndpoint.codecSetPriority("G7221/16000", (short) CodecPriority.PRIORITY_DISABLED);
-//                mEndpoint.codecSetPriority("G7221/32000", (short) CodecPriority.PRIORITY_DISABLED);
+                mEndpoint.codecSetPriority("G7221/16000", (short) CodecPriority.PRIORITY_DISABLED);
+                mEndpoint.codecSetPriority("G7221/32000", (short) CodecPriority.PRIORITY_DISABLED);
                 mEndpoint.codecSetPriority("ilbc/8000", (short) CodecPriority.PRIORITY_DISABLED);
             }
 
@@ -747,9 +767,9 @@ public class SipService extends BackgroundService implements SipServiceConstants
             CodecInfoVector2 codecs = mEndpoint.codecEnum2();
             if (codecs == null || codecs.size() == 0) return null;
 
-            ArrayList<CodecPriority> codecPrioritiesList = new ArrayList<>((int)codecs.size());
+            ArrayList<CodecPriority> codecPrioritiesList = new ArrayList<>(codecs.size());
 
-            for (int i = 0; i < (int)codecs.size(); i++) {
+            for (int i = 0; i < codecs.size(); i++) {
                 CodecInfo codecInfo = codecs.get(i);
                 CodecPriority newCodec = new CodecPriority(codecInfo.getCodecId(),
                                                            codecInfo.getPriority());
@@ -1106,6 +1126,16 @@ public class SipService extends BackgroundService implements SipServiceConstants
         } catch (Exception ex) {
             Logger.error(TAG, "Error while making a direct call as Guest", ex);
             mBroadcastEmitter.outgoingCall(accountID, -1, uri.getUserInfo(), false, false);
+        }
+    }
+
+    private void handleReconnectCall() {
+        try {
+            getBroadcastEmitter().callReconnectionState(CallReconnectionState.PROGRESS);
+            mEndpoint.handleIpChange(new IpChangeParam());
+            Logger.info(TAG, "Call reconnection started");
+        } catch (Exception exc) {
+            Logger.error(TAG, "Error while reconnecting the call", exc);
         }
     }
 

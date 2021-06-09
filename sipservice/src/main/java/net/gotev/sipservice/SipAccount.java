@@ -18,9 +18,9 @@ public class SipAccount extends Account {
 
     private static final String LOG_TAG = SipAccount.class.getSimpleName();
 
-    private HashMap<Integer, SipCall> activeCalls = new HashMap<>();
-    private SipAccountData data;
-    private SipService service;
+    private final HashMap<Integer, SipCall> activeCalls = new HashMap<>();
+    private final SipAccountData data;
+    private final SipService service;
 
     protected SipAccount(SipService service, SipAccountData data) {
         super();
@@ -128,8 +128,7 @@ public class SipAccount extends Account {
 
     @Override
     public void onRegState(OnRegStateParam prm) {
-        service.getBroadcastEmitter()
-               .registrationState(data.getIdUri(), prm.getCode());
+        service.getBroadcastEmitter().registrationState(data.getIdUri(), prm.getCode());
     }
 
     @Override
@@ -175,7 +174,7 @@ public class SipAccount extends Account {
             call.answer(callOpParam);
             Logger.debug(LOG_TAG, "Sending 180 ringing");
 
-            String displayName = "", remoteUri = "";
+            String displayName, remoteUri;
             try {
                 CallerInfo contactInfo = new CallerInfo(call.getInfo());
                 displayName = contactInfo.getDisplayName();

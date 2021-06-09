@@ -9,6 +9,22 @@
 package org.pjsip.pjsua2;
 
 public class pjsua2JNI {
+
+  static {
+    try {
+	System.loadLibrary("openh264");
+    } catch (UnsatisfiedLinkError e) {
+	System.err.println("Failed to load native library openh264\n" + e);
+	System.out.println("This could be safely ignored if you " +
+			   "don't use OpenH264 video codec.");
+    }
+    try {
+	System.loadLibrary("pjsua2");
+    } catch (UnsatisfiedLinkError e) {
+	System.err.println("Failed to load native library pjsua2\n" + e);
+    }
+  }
+
   public final static native void pj_qos_params_flags_set(long jarg1, pj_qos_params jarg1_, short jarg2);
   public final static native short pj_qos_params_flags_get(long jarg1, pj_qos_params jarg1_);
   public final static native void pj_qos_params_dscp_val_set(long jarg1, pj_qos_params jarg1_, short jarg2);
@@ -1307,6 +1323,8 @@ public class pjsua2JNI {
   public final static native long AccountRegConfig_unregWaitMsec_get(long jarg1, AccountRegConfig jarg1_);
   public final static native void AccountRegConfig_proxyUse_set(long jarg1, AccountRegConfig jarg1_, long jarg2);
   public final static native long AccountRegConfig_proxyUse_get(long jarg1, AccountRegConfig jarg1_);
+  public final static native void AccountRegConfig_callID_set(long jarg1, AccountRegConfig jarg1_, String jarg2);
+  public final static native String AccountRegConfig_callID_get(long jarg1, AccountRegConfig jarg1_);
   public final static native void AccountRegConfig_readObject(long jarg1, AccountRegConfig jarg1_, long jarg2, ContainerNode jarg2_) throws java.lang.Exception;
   public final static native void AccountRegConfig_writeObject(long jarg1, AccountRegConfig jarg1_, long jarg2, ContainerNode jarg2_) throws java.lang.Exception;
   public final static native long new_AccountRegConfig();
@@ -1375,6 +1393,8 @@ public class pjsua2JNI {
   public final static native int AccountNatConfig_nat64Opt_get(long jarg1, AccountNatConfig jarg1_);
   public final static native void AccountNatConfig_iceEnabled_set(long jarg1, AccountNatConfig jarg1_, boolean jarg2);
   public final static native boolean AccountNatConfig_iceEnabled_get(long jarg1, AccountNatConfig jarg1_);
+  public final static native void AccountNatConfig_iceTrickle_set(long jarg1, AccountNatConfig jarg1_, int jarg2);
+  public final static native int AccountNatConfig_iceTrickle_get(long jarg1, AccountNatConfig jarg1_);
   public final static native void AccountNatConfig_iceMaxHostCands_set(long jarg1, AccountNatConfig jarg1_, int jarg2);
   public final static native int AccountNatConfig_iceMaxHostCands_get(long jarg1, AccountNatConfig jarg1_);
   public final static native void AccountNatConfig_iceAggressiveNomination_set(long jarg1, AccountNatConfig jarg1_, boolean jarg2);
@@ -1917,6 +1937,18 @@ public class pjsua2JNI {
   public final static native long StreamInfo_audCodecParam_get(long jarg1, StreamInfo jarg1_);
   public final static native void StreamInfo_vidCodecParam_set(long jarg1, StreamInfo jarg1_, long jarg2, VidCodecParam jarg2_);
   public final static native long StreamInfo_vidCodecParam_get(long jarg1, StreamInfo jarg1_);
+  public final static native void StreamInfo_jbInit_set(long jarg1, StreamInfo jarg1_, int jarg2);
+  public final static native int StreamInfo_jbInit_get(long jarg1, StreamInfo jarg1_);
+  public final static native void StreamInfo_jbMinPre_set(long jarg1, StreamInfo jarg1_, int jarg2);
+  public final static native int StreamInfo_jbMinPre_get(long jarg1, StreamInfo jarg1_);
+  public final static native void StreamInfo_jbMaxPre_set(long jarg1, StreamInfo jarg1_, int jarg2);
+  public final static native int StreamInfo_jbMaxPre_get(long jarg1, StreamInfo jarg1_);
+  public final static native void StreamInfo_jbMax_set(long jarg1, StreamInfo jarg1_, int jarg2);
+  public final static native int StreamInfo_jbMax_get(long jarg1, StreamInfo jarg1_);
+  public final static native void StreamInfo_jbDiscardAlgo_set(long jarg1, StreamInfo jarg1_, long jarg2);
+  public final static native long StreamInfo_jbDiscardAlgo_get(long jarg1, StreamInfo jarg1_);
+  public final static native void StreamInfo_rtcpSdesByeDisabled_set(long jarg1, StreamInfo jarg1_, boolean jarg2);
+  public final static native boolean StreamInfo_rtcpSdesByeDisabled_get(long jarg1, StreamInfo jarg1_);
   public final static native long new_StreamInfo();
   public final static native void delete_StreamInfo(long jarg1);
   public final static native void StreamStat_rtcp_set(long jarg1, StreamStat jarg1_, long jarg2, RtcpStat jarg2_);
@@ -1941,6 +1973,12 @@ public class pjsua2JNI {
   public final static native long OnCallSdpCreatedParam_remSdp_get(long jarg1, OnCallSdpCreatedParam jarg1_);
   public final static native long new_OnCallSdpCreatedParam();
   public final static native void delete_OnCallSdpCreatedParam(long jarg1);
+  public final static native void OnStreamPreCreateParam_streamIdx_set(long jarg1, OnStreamPreCreateParam jarg1_, long jarg2);
+  public final static native long OnStreamPreCreateParam_streamIdx_get(long jarg1, OnStreamPreCreateParam jarg1_);
+  public final static native void OnStreamPreCreateParam_streamInfo_set(long jarg1, OnStreamPreCreateParam jarg1_, long jarg2, StreamInfo jarg2_);
+  public final static native long OnStreamPreCreateParam_streamInfo_get(long jarg1, OnStreamPreCreateParam jarg1_);
+  public final static native long new_OnStreamPreCreateParam();
+  public final static native void delete_OnStreamPreCreateParam(long jarg1);
   public final static native void OnStreamCreatedParam_stream_set(long jarg1, OnStreamCreatedParam jarg1_, long jarg2);
   public final static native long OnStreamCreatedParam_stream_get(long jarg1, OnStreamCreatedParam jarg1_);
   public final static native void OnStreamCreatedParam_streamIdx_set(long jarg1, OnStreamCreatedParam jarg1_, long jarg2);
@@ -1965,6 +2003,18 @@ public class pjsua2JNI {
   public final static native long OnDtmfDigitParam_duration_get(long jarg1, OnDtmfDigitParam jarg1_);
   public final static native long new_OnDtmfDigitParam();
   public final static native void delete_OnDtmfDigitParam(long jarg1);
+  public final static native void OnDtmfEventParam_method_set(long jarg1, OnDtmfEventParam jarg1_, int jarg2);
+  public final static native int OnDtmfEventParam_method_get(long jarg1, OnDtmfEventParam jarg1_);
+  public final static native void OnDtmfEventParam_timestamp_set(long jarg1, OnDtmfEventParam jarg1_, long jarg2);
+  public final static native long OnDtmfEventParam_timestamp_get(long jarg1, OnDtmfEventParam jarg1_);
+  public final static native void OnDtmfEventParam_digit_set(long jarg1, OnDtmfEventParam jarg1_, String jarg2);
+  public final static native String OnDtmfEventParam_digit_get(long jarg1, OnDtmfEventParam jarg1_);
+  public final static native void OnDtmfEventParam_duration_set(long jarg1, OnDtmfEventParam jarg1_, long jarg2);
+  public final static native long OnDtmfEventParam_duration_get(long jarg1, OnDtmfEventParam jarg1_);
+  public final static native void OnDtmfEventParam_flags_set(long jarg1, OnDtmfEventParam jarg1_, long jarg2);
+  public final static native long OnDtmfEventParam_flags_get(long jarg1, OnDtmfEventParam jarg1_);
+  public final static native long new_OnDtmfEventParam();
+  public final static native void delete_OnDtmfEventParam(long jarg1);
   public final static native void OnCallTransferRequestParam_dstUri_set(long jarg1, OnCallTransferRequestParam jarg1_, String jarg2);
   public final static native String OnCallTransferRequestParam_dstUri_get(long jarg1, OnCallTransferRequestParam jarg1_);
   public final static native void OnCallTransferRequestParam_statusCode_set(long jarg1, OnCallTransferRequestParam jarg1_, int jarg2);
@@ -2147,12 +2197,16 @@ public class pjsua2JNI {
   public final static native void Call_onCallMediaStateSwigExplicitCall(long jarg1, Call jarg1_, long jarg2, OnCallMediaStateParam jarg2_);
   public final static native void Call_onCallSdpCreated(long jarg1, Call jarg1_, long jarg2, OnCallSdpCreatedParam jarg2_);
   public final static native void Call_onCallSdpCreatedSwigExplicitCall(long jarg1, Call jarg1_, long jarg2, OnCallSdpCreatedParam jarg2_);
+  public final static native void Call_onStreamPreCreate(long jarg1, Call jarg1_, long jarg2, OnStreamPreCreateParam jarg2_);
+  public final static native void Call_onStreamPreCreateSwigExplicitCall(long jarg1, Call jarg1_, long jarg2, OnStreamPreCreateParam jarg2_);
   public final static native void Call_onStreamCreated(long jarg1, Call jarg1_, long jarg2, OnStreamCreatedParam jarg2_);
   public final static native void Call_onStreamCreatedSwigExplicitCall(long jarg1, Call jarg1_, long jarg2, OnStreamCreatedParam jarg2_);
   public final static native void Call_onStreamDestroyed(long jarg1, Call jarg1_, long jarg2, OnStreamDestroyedParam jarg2_);
   public final static native void Call_onStreamDestroyedSwigExplicitCall(long jarg1, Call jarg1_, long jarg2, OnStreamDestroyedParam jarg2_);
   public final static native void Call_onDtmfDigit(long jarg1, Call jarg1_, long jarg2, OnDtmfDigitParam jarg2_);
   public final static native void Call_onDtmfDigitSwigExplicitCall(long jarg1, Call jarg1_, long jarg2, OnDtmfDigitParam jarg2_);
+  public final static native void Call_onDtmfEvent(long jarg1, Call jarg1_, long jarg2, OnDtmfEventParam jarg2_);
+  public final static native void Call_onDtmfEventSwigExplicitCall(long jarg1, Call jarg1_, long jarg2, OnDtmfEventParam jarg2_);
   public final static native void Call_onCallTransferRequest(long jarg1, Call jarg1_, long jarg2, OnCallTransferRequestParam jarg2_);
   public final static native void Call_onCallTransferRequestSwigExplicitCall(long jarg1, Call jarg1_, long jarg2, OnCallTransferRequestParam jarg2_);
   public final static native void Call_onCallTransferStatus(long jarg1, Call jarg1_, long jarg2, OnCallTransferStatusParam jarg2_);
@@ -2421,6 +2475,8 @@ public class pjsua2JNI {
   public final static native int MediaConfig_jbMaxPre_get(long jarg1, MediaConfig jarg1_);
   public final static native void MediaConfig_jbMax_set(long jarg1, MediaConfig jarg1_, int jarg2);
   public final static native int MediaConfig_jbMax_get(long jarg1, MediaConfig jarg1_);
+  public final static native void MediaConfig_jbDiscardAlgo_set(long jarg1, MediaConfig jarg1_, long jarg2);
+  public final static native long MediaConfig_jbDiscardAlgo_get(long jarg1, MediaConfig jarg1_);
   public final static native void MediaConfig_sndAutoCloseTime_set(long jarg1, MediaConfig jarg1_, int jarg2);
   public final static native int MediaConfig_sndAutoCloseTime_get(long jarg1, MediaConfig jarg1_);
   public final static native void MediaConfig_vidPreviewEnableNative_set(long jarg1, MediaConfig jarg1_, boolean jarg2);
@@ -2495,6 +2551,8 @@ public class pjsua2JNI {
   public final static native long Endpoint_getVideoCodecParam(long jarg1, Endpoint jarg1_, String jarg2) throws java.lang.Exception;
   public final static native void Endpoint_setVideoCodecParam(long jarg1, Endpoint jarg1_, String jarg2, long jarg3, VidCodecParam jarg3_) throws java.lang.Exception;
   public final static native void Endpoint_resetVideoCodecParam(long jarg1, Endpoint jarg1_, String jarg2) throws java.lang.Exception;
+  public final static native long Endpoint_getCodecOpusConfig(long jarg1, Endpoint jarg1_) throws java.lang.Exception;
+  public final static native void Endpoint_setCodecOpusConfig(long jarg1, Endpoint jarg1_, long jarg2, CodecOpusConfig jarg2_) throws java.lang.Exception;
   public final static native long Endpoint_srtpCryptoEnum(long jarg1, Endpoint jarg1_) throws java.lang.Exception;
   public final static native void Endpoint_handleIpChange(long jarg1, Endpoint jarg1_, long jarg2, IpChangeParam jarg2_) throws java.lang.Exception;
   public final static native void Endpoint_onNatDetectionComplete(long jarg1, Endpoint jarg1_, long jarg2, OnNatDetectionCompleteParam jarg2_);
@@ -2592,6 +2650,9 @@ public class pjsua2JNI {
   public static void SwigDirector_Call_onCallSdpCreated(Call jself, long prm) {
     jself.onCallSdpCreated(new OnCallSdpCreatedParam(prm, false));
   }
+  public static void SwigDirector_Call_onStreamPreCreate(Call jself, long prm) {
+    jself.onStreamPreCreate(new OnStreamPreCreateParam(prm, false));
+  }
   public static void SwigDirector_Call_onStreamCreated(Call jself, long prm) {
     jself.onStreamCreated(new OnStreamCreatedParam(prm, false));
   }
@@ -2600,6 +2661,9 @@ public class pjsua2JNI {
   }
   public static void SwigDirector_Call_onDtmfDigit(Call jself, long prm) {
     jself.onDtmfDigit(new OnDtmfDigitParam(prm, false));
+  }
+  public static void SwigDirector_Call_onDtmfEvent(Call jself, long prm) {
+    jself.onDtmfEvent(new OnDtmfEventParam(prm, false));
   }
   public static void SwigDirector_Call_onCallTransferRequest(Call jself, long prm) {
     jself.onCallTransferRequest(new OnCallTransferRequestParam(prm, false));

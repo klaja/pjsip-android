@@ -15,9 +15,9 @@ import java.util.List;
  */
 public class BroadcastEventEmitter implements SipServiceConstants {
 
-    public static String NAMESPACE = "net.gotev";
+    public static String NAMESPACE = "com.voismart";
 
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * Enumeration of the broadcast actions
@@ -32,7 +32,8 @@ public class BroadcastEventEmitter implements SipServiceConstants {
         CODEC_PRIORITIES_SET_STATUS,
         MISSED_CALL,
         VIDEO_SIZE,
-        CALL_STATS
+        CALL_STATS,
+        CALL_RECONNECTION_STATE
     }
 
     public BroadcastEventEmitter(Context context) {
@@ -91,7 +92,7 @@ public class BroadcastEventEmitter implements SipServiceConstants {
      * @param isLocalMute true if the call is muted locally
      * @param isLocalVideoMute true if the video is muted locally
      */
-    public synchronized  void callState(String accountID, int callID, int callStateCode, int callStateStatus,
+    public synchronized void callState(String accountID, int callID, int callStateCode, int callStateStatus,
                           long connectTimestamp, boolean isLocalHold, boolean isLocalMute, boolean isLocalVideoMute) {
         final Intent intent = new Intent();
 
@@ -178,6 +179,13 @@ public class BroadcastEventEmitter implements SipServiceConstants {
         intent.putExtra(PARAM_CALL_STATS_RX_STREAM, rx);
         intent.putExtra(PARAM_CALL_STATS_TX_STREAM, tx);
 
+        mContext.sendBroadcast(intent);
+    }
+
+    void callReconnectionState(CallReconnectionState state) {
+        final Intent intent = new Intent();
+        intent.setAction(getAction(BroadcastAction.CALL_RECONNECTION_STATE));
+        intent.putExtra(PARAM_CALL_RECONNECTION_STATE, state);
         mContext.sendBroadcast(intent);
     }
 

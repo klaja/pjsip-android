@@ -16,6 +16,7 @@ import org.pjsip.pjsua2.Media;
 import org.pjsip.pjsua2.OnCallMediaEventParam;
 import org.pjsip.pjsua2.OnCallMediaStateParam;
 import org.pjsip.pjsua2.OnCallStateParam;
+import org.pjsip.pjsua2.OnStreamDestroyedParam;
 import org.pjsip.pjsua2.RtcpStreamStat;
 import org.pjsip.pjsua2.StreamInfo;
 import org.pjsip.pjsua2.StreamStat;
@@ -42,7 +43,7 @@ public class SipCall extends Call {
 
     private static final String LOG_TAG = SipCall.class.getSimpleName();
 
-    private SipAccount account;
+    private final SipAccount account;
     private boolean localHold = false;
     private boolean localMute = false;
     private boolean localVideoMute = false;
@@ -54,6 +55,9 @@ public class SipCall extends Call {
 
     private VideoWindow mVideoWindow;
     private VideoPreview mVideoPreview;
+
+    private StreamInfo streamInfo = null;
+    private StreamStat streamStat = null;
 
     /**
      * Incoming call constructor.
@@ -92,7 +96,7 @@ public class SipCall extends Call {
             CallInfo info = getInfo();
             int callID = info.getId();
             int callState = info.getState();
-            int callStatus = 0;
+            int callStatus = pjsip_status_code.PJSIP_SC_NULL;
 
             /*
              * From: http://www.pjsip.org/docs/book-latest/html/call.html#call-disconnection
@@ -115,13 +119,9 @@ public class SipCall extends Call {
                 stopVideoFeeds();
                 stopSendingKeyFrame();
                 account.removeCall(callID);
-                if (connectTimestamp > 0) {
+                if (connectTimestamp > 0 && streamInfo != null && streamStat != null) {
                     try {
-                        sendCallStats(
-                                info.getConnectDuration().getSec(),
-                                callStatus != 0 ? callStatus : -1,
-                                getStreamInfo(0),
-                                getStreamStat(0));
+                        sendCallStats(info.getConnectDuration().getSec(), callStatus);
                     } catch (Exception ex) {
                         Logger.error(LOG_TAG, "Error while sending call stats", ex);
                         throw ex;
@@ -150,7 +150,7 @@ public class SipCall extends Call {
             }
 
             account.getService().getBroadcastEmitter()
-                    .callState(account.getData().getIdUri(), callID, callState, callStatus != 0 ? callStatus : -1,
+                    .callState(account.getData().getIdUri(), callID, callState, callStatus,
                                connectTimestamp, localHold, localMute, localVideoMute);
 
             if (callState == pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED) {
@@ -207,6 +207,17 @@ public class SipCall extends Call {
             }
         }
         super.onCallMediaEvent(prm);
+    }
+
+    @Override
+    public void onStreamDestroyed(OnStreamDestroyedParam prm) {
+        try {
+            streamInfo = getStreamInfo(0);
+            streamStat = getStreamStat(0);
+        } catch (Exception ex) {
+            Logger.error(LOG_TAG, "onStreamDestroyed: error while getting call stats", ex);
+        }
+        super.onStreamDestroyed(prm);
     }
 
     /**
@@ -438,7 +449,10 @@ public class SipCall extends Call {
             mVideoPreview.delete();
         }
         if (!videoConference) {
-            mVideoPreview = new VideoPreview(mediaInfo.getVideoCapDev());
+            // Since 2.9 pjsip will not start capture device if autoTransmit is false
+            // thus mediaInfo.getVideoCapDev() always returns -3 -> NULL
+            // mVideoPreview = new VideoPreview(mediaInfo.getVideoCapDev());
+            mVideoPreview = new VideoPreview(SipServiceConstants.FRONT_CAMERA_CAPTURE_DEVICE);
         }
         mVideoWindow = new VideoWindow(mediaInfo.getVideoIncomingWindowId());
     }
@@ -561,7 +575,7 @@ public class SipCall extends Call {
         this.frontCamera = frontCamera;
     }
 
-    private Runnable sendKeyFrameRunnable = new Runnable() {
+    private final Runnable sendKeyFrameRunnable = new Runnable() {
         @Override
         public void run() {
             try {
@@ -581,7 +595,7 @@ public class SipCall extends Call {
         account.getService().dequeueJob(sendKeyFrameRunnable);
     }
 
-    private void sendCallStats(int duration, int callStatus, StreamInfo streamInfo, StreamStat streamStat) {
+    private void sendCallStats(int duration, int callStatus) {
         String audioCodec = streamInfo.getCodecName().toLowerCase()+"_"+streamInfo.getCodecClockRate();
 
         RtcpStreamStat rxStat = streamStat.getRtcp().getRxStat();
@@ -616,5 +630,7 @@ public class SipCall extends Call {
         );
 
         account.getService().getBroadcastEmitter().callStats(duration, audioCodec, callStatus, rx, tx);
+        streamInfo = null;
+        streamStat = null;
     }
 }

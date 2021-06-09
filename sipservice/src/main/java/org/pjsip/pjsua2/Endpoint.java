@@ -275,6 +275,14 @@ public class Endpoint {
     pjsua2JNI.Endpoint_resetVideoCodecParam(swigCPtr, this, codec_id);
   }
 
+  public CodecOpusConfig getCodecOpusConfig() throws java.lang.Exception {
+    return new CodecOpusConfig(pjsua2JNI.Endpoint_getCodecOpusConfig(swigCPtr, this), true);
+  }
+
+  public void setCodecOpusConfig(CodecOpusConfig opus_cfg) throws java.lang.Exception {
+    pjsua2JNI.Endpoint_setCodecOpusConfig(swigCPtr, this, CodecOpusConfig.getCPtr(opus_cfg), opus_cfg);
+  }
+
   public StringVector srtpCryptoEnum() throws java.lang.Exception {
     return new StringVector(pjsua2JNI.Endpoint_srtpCryptoEnum(swigCPtr, this), true);
   }
